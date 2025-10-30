@@ -287,6 +287,7 @@ class _InquiryDetailScreenState extends State<InquiryDetailScreen> {
                                   ),
                                 
                                 
+                                
                                 // ignore: unnecessary_null_comparison
                                 if (hasReply && inquiry.updatedAt == null)
                                   Padding(

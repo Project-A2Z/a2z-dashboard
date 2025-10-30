@@ -57,7 +57,7 @@ class _SidebarState extends State<Sidebar_Admin> {
           borderRadius: BorderRadius.circular(24),
           child: Column(
             children: [
-              // ✅ اللوجو
+              
               Padding(
                 padding: EdgeInsets.symmetric(
                   vertical: screenHeight < 600 ? 8.0 : 16.0,
@@ -80,7 +80,7 @@ class _SidebarState extends State<Sidebar_Admin> {
 
               Divider(color: Colors.grey.shade300, thickness: 1, height: 1),
 
-              // ✅ القائمة
+              
               Expanded(
                 child: Directionality(
                   textDirection: TextDirection.rtl,
@@ -109,7 +109,7 @@ class _SidebarState extends State<Sidebar_Admin> {
 
               Divider(color: Colors.grey.shade300, thickness: 1, height: 1),
 
-              // ✅ تسجيل الخروج في الأسفل
+              
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: screenHeight < 600 ? 8.0 : 12.0,

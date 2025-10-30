@@ -37,17 +37,17 @@ class InquiryCubit extends Cubit<InquiryState> {
     }
   }
 
-  /// ✅ دالة جديدة لتحديث حالة الاستعلام
+  
   Future<void> updateInquiryStatus(String id, String newStatus) async {
     emit(InquiryLoading());
     try {
-      // لو عندك endpoint لتحديث الحالة في ApiService
+      
       await api.updateInquiryStatus(id, newStatus);
 
-      // بعد التحديث نرجع نجيب البيانات من السيرفر علشان نحدّث الجدول
+      
       await fetchInquiries();
 
-      // ممكن نبعث حالة جديدة لو حبيت تتابع التغيير
+      
       emit(InquiryStatusUpdated());
     } catch (e) {
       emit(InquiryError(e.toString()));

@@ -21,7 +21,7 @@ class CustomCard extends StatelessWidget {
       builder: (context, constraints) {
         double width = constraints.maxWidth;
 
-        // 🔹 أحجام متغيرة حسب العرض
+        
         double iconSize = width > 200 ? 28 : 22;
         double radius = width > 200 ? 24 : 18;
         double valueFont = width > 200 ? 20 : 14;

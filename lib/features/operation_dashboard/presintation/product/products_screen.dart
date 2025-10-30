@@ -1,10 +1,7 @@
 
 import 'dart:async';
-import 'dart:convert';
-import 'package:disctop_app/core/api_service.dart';
 import 'package:disctop_app/core/widgets/filter_stock.dart';
 import 'package:disctop_app/core/widgets/header_operation.dart';
-import 'package:disctop_app/features/operation_dashboard/operation_cubit/notification_cubit/notification_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:disctop_app/core/app_colors.dart';
@@ -14,7 +11,6 @@ import 'package:disctop_app/features/operation_dashboard/operation_cubit/product
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/product_model.dart';
 import 'package:disctop_app/features/operation_dashboard/presintation/product/add_product_screen.dart';
 import 'package:disctop_app/features/operation_dashboard/presintation/product/product_details_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});

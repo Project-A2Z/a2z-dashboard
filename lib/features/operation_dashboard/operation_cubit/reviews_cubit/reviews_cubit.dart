@@ -8,16 +8,16 @@ class ReviewsCubit extends Cubit<ReviewsState> {
 
   ReviewsCubit(this.apiService) : super(ReviewsInitial());
 
-  /// 🔹 تحميل كل الريفيوهات لكل المنتجات
+  
   Future<void> fetchAllReviewsForAllProducts() async {
     try {
       emit(ReviewsLoading());
 
-      // 1️⃣ نحصل على كل المنتجات
+      
       final products = await apiService.getAllProducts();
       List<ReviewModel> allReviews = [];
 
-      // 2️⃣ نجيب الريفيوهات لكل منتج
+      
       for (final product in products) {
         try {
           final reviews = await apiService.getReviewsByProduct(product.id);
@@ -27,7 +27,7 @@ class ReviewsCubit extends Cubit<ReviewsState> {
         }
       }
 
-      // 3️⃣ نتحقق إذا كانت القائمة فاضية
+      
       if (allReviews.isEmpty) {
         emit(ReviewsEmpty());
       } else {
@@ -41,7 +41,7 @@ class ReviewsCubit extends Cubit<ReviewsState> {
     }
   }
 
-  /// 🔹 تحميل الريفيوهات الخاصة بمنتج واحد فقط
+  
   Future<void> fetchReviewsByProduct(String productId) async {
     try {
       emit(ReviewsLoading());
@@ -59,15 +59,15 @@ class ReviewsCubit extends Cubit<ReviewsState> {
     }
   }
 
-  /// 🔹 حذف ريفيو معين
+  
   Future<void> deleteReview(String reviewId) async {
     try {
-      // نبدأ حالة تحميل أثناء الحذف
+      
       emit(ReviewsDeleting());
 
       await apiService.deleteReview(reviewId);
 
-      // بعد الحذف نحدث الحالة بعرض الريفيوهات من جديد
+      
       await fetchAllReviewsForAllProducts();
 
       emit(ReviewDeletedSuccess());
@@ -76,7 +76,7 @@ class ReviewsCubit extends Cubit<ReviewsState> {
     }
   }
 
-  /// 🔹 تحديث البيانات (إعادة تحميل كل الريفيوهات)
+  
   void refresh() {
     fetchAllReviewsForAllProducts();
   }

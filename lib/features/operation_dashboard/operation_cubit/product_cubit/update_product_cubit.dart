@@ -6,7 +6,7 @@ class UpdateProductCubit extends Cubit<UpdateProductState> {
   final ApiService apiService;
   UpdateProductCubit(this.apiService) : super(UpdateProductInitial());
 
-  /// ✅ Update product
+  
   Future<void> updateProduct({
     required String id,
     required String name,
@@ -14,7 +14,7 @@ class UpdateProductCubit extends Cubit<UpdateProductState> {
     required String description,
     required String category,
     required int stockQty,
-    required List<String> imageList, // ← لازم تبعته روابط صور فقط
+    required List<String> imageList, 
   }) async {
     emit(UpdateProductLoading());
     try {

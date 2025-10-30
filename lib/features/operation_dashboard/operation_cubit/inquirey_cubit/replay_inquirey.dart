@@ -22,7 +22,7 @@ class InquiryCubit extends Cubit<InquiryState> {
     try {
       final inquiry = await _service.replyToInquiry(id, reply);
       emit(InquiryReplied(inquiry));
-      await fetchInquiries(); // ✅ بعد التحديث نرجع نجيب البيانات تاني
+      await fetchInquiries(); 
     } catch (e) {
       emit(InquiryError(e.toString()));
     }

@@ -23,7 +23,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   final Map<String, ProductModel?> _productCache = {};
   final ApiService _apiService = ApiService();
   final String selectedKey = "التعليقات و المراجعات";
-// navigate to reply screen
+
 void _onReply(ReviewModel review) {
   Navigator.push(
     context,
@@ -31,7 +31,7 @@ void _onReply(ReviewModel review) {
       builder: (_) => ReplyScreen(
         reviewId: review.id,
         onReplySent: (sentReply) {
-          // بعد الرد نحدث اللستة
+          
           context.read<ReviewsCubit>().refresh();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('تم إرسال الرد')),
@@ -42,7 +42,7 @@ void _onReply(ReviewModel review) {
   );
 }
 
-// hide review
+
 Future<void> _onHide(ReviewModel review) async {
   final confirmed = await showDialog<bool>(
     context: context,
@@ -58,7 +58,7 @@ Future<void> _onHide(ReviewModel review) async {
 
   if (confirmed != true) return;
 
-  // show loading
+  
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -66,9 +66,9 @@ Future<void> _onHide(ReviewModel review) async {
   );
 
   try {
-    await ApiService().hideReview(review.id); // new ApiService method
+    await ApiService().hideReview(review.id); 
     if (mounted) {
-      Navigator.pop(context); // close loading
+      Navigator.pop(context); 
       context.read<ReviewsCubit>().refresh();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إخفاء التقييم بنجاح')),
@@ -84,7 +84,7 @@ Future<void> _onHide(ReviewModel review) async {
   }
 }
 
-// delete review
+
 Future<void> _onDelete(ReviewModel review) async {
   final confirmed = await showDialog<bool>(
     context: context,
@@ -109,7 +109,7 @@ Future<void> _onDelete(ReviewModel review) async {
   try {
     await ApiService().deleteReview(review.id);
     if (mounted) {
-      Navigator.pop(context); // close loading
+      Navigator.pop(context); 
       context.read<ReviewsCubit>().refresh();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم حذف التقييم بنجاح'), backgroundColor: Colors.green),
@@ -300,7 +300,7 @@ Future<void> _onDelete(ReviewModel review) async {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // العميل
+              
               Expanded(
                 flex: 2,
                 child: Row(
@@ -320,7 +320,7 @@ Future<void> _onDelete(ReviewModel review) async {
                 ),
               ),
 
-              // المنتج
+              
               Expanded(
                 flex: 3,
                 child: isLoading
@@ -438,7 +438,7 @@ Future<void> _onDelete(ReviewModel review) async {
                           ),
               ),
 
-              // التعليق
+              
               Expanded(
                 flex: 4,
                 child: Align(
@@ -461,7 +461,7 @@ Future<void> _onDelete(ReviewModel review) async {
                 ),
               ),
 
-              // التقييم
+              
               Expanded(
                 flex: 2,
                 child: Row(
@@ -479,7 +479,7 @@ Future<void> _onDelete(ReviewModel review) async {
                 ),
               ),
 
-              // المزيد
+              
               Expanded(
                 flex: 1,
                 child: Center(
@@ -543,78 +543,6 @@ Future<void> _onDelete(ReviewModel review) async {
     );
   }
 
-  void _showDeleteConfirmation(ReviewModel review) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        title: const Text(
-          'تأكيد الحذف',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text('هل أنت متأكد من حذف هذا التقييم؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'إلغاء',
-              style: TextStyle(color: Colors.grey[700]),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF5C8D4E),
-                  ),
-                ),
-              );
-
-              try {
-                await context.read<ReviewsCubit>().deleteReview(review.id);
-
-                if (mounted) Navigator.pop(context);
-
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم حذف التقييم بنجاح'),
-                      backgroundColor: Colors.green,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) Navigator.pop(context);
-
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('فشل حذف التقييم: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text(
-              'حذف',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildPagination(int totalItems) {
     final totalPages = (totalItems / itemsPerPage).ceil();

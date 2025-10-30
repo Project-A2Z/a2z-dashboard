@@ -248,7 +248,7 @@ BlocBuilder<OrderProductsCubit, ProductsState>(
                     child:Image.network(
   product.imageList.isNotEmpty
       ? product.imageList.first
-      : "", // سيبها فاضية عشان يدخل على errorBuilder
+      : "", 
   width: 120,
   height: 120,
   fit: BoxFit.cover,
@@ -514,29 +514,5 @@ Widget _buildLine(bool isCompleted) {
       ),
     );
   }
-   Widget _header() => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        "الطلبات",
-        style: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black87,
-        ),
-      ),
-      CircleAvatar(
-        radius: 25,
-        backgroundColor: AppColors.primary,
-        child: const Text(
-          "M",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    ],
-  );
+   
 }

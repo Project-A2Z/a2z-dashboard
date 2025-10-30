@@ -6,7 +6,7 @@ class ProductsCubit extends Cubit<ProductsState> {
   final ApiService apiService;
   ProductsCubit(this.apiService) : super(ProductsInitial());
 
-  /// تحميل كل المنتجات
+  
   Future<void> fetchProducts() async {
     emit(ProductsLoading());
     try {
@@ -17,7 +17,7 @@ class ProductsCubit extends Cubit<ProductsState> {
     }
   }
 
-  /// ✅ البحث بباراميترز مخصّصة
+  
   Future<void> searchProducts({
     String? nameRegex,
     String? categoryRegex,

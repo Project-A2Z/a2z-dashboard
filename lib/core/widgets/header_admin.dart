@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:disctop_app/core/app_colors.dart';
 
 class DashboardHeader_admin extends StatefulWidget {
-  final String? userName; // خليها اختيارية
+  final String? userName; 
   final String title;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onRefreshTap;

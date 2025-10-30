@@ -12,7 +12,7 @@ class OrdersCubit extends Cubit<OrdersState> {
     try {
       final List<OrderModel> models = await _api.getOrders();
 
-      // نحول كل OrderModel لِ Map علشان ال UI ما يتغيرش
+      
       final List<Map<String, dynamic>> maps = models.map((m) => m.toJson()).toList();
 
       emit(OrdersLoaded(maps));

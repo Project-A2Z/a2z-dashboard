@@ -26,10 +26,9 @@ class OrderDetailsCubit extends Cubit<OrderDetailsState> {
 
     for (final id in productIds) {
       final product = await _apiService.getProductById(id);
-      if (product != null) { // ✅ في حالة لو الـ API رجع null
-        products.add(product);
-      }
-    }
+ 
+      products.add(product);
+        }
 
     emit(ProductsLoaded(products) as OrderDetailsState);
   } catch (e) {

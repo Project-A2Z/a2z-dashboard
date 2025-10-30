@@ -5,7 +5,7 @@ class OrderDetailsInitial extends OrderDetailsState {}
 class OrderDetailsLoading extends OrderDetailsState {}
 
 class OrderDetailsLoaded extends OrderDetailsState {
-  final Map<String, dynamic> order; // Map علشان الـ UI يظل زي ما هو
+  final Map<String, dynamic> order; 
   OrderDetailsLoaded({required this.order});
 }
 

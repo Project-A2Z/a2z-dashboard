@@ -38,6 +38,8 @@ class Operation {
   final List<dynamic>? address;
   final String? createdAt;
   final String? updatedAt;
+  final String? password;
+  final String? adminPassword;
 
   Operation({
     required this.id,
@@ -54,6 +56,8 @@ class Operation {
     this.address,
     this.createdAt,
     this.updatedAt,
+    this.password,
+    this.adminPassword,
   });
 
   factory Operation.fromJson(Map<String, dynamic> json) {
@@ -72,6 +76,8 @@ class Operation {
       address: json['address'] ?? [],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
+      password: json['password'],
+      adminPassword: json['adminPassword'],
     );
   }
 }

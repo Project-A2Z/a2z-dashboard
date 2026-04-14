@@ -486,9 +486,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Row(
                                     children: [
                                       Expanded(child: _smallHeaderBox('الوحدة')),
-                                      const SizedBox(width: 120),
+                                      const SizedBox(width: 40),
                                       Expanded(child: _smallHeaderBox('الكمية')),
-                                      const SizedBox(width: 120),
+                                      const SizedBox(width: 40),
                                       Expanded(child: _smallHeaderBox('سعر الشراء')),
                                     ],
                                   ),
@@ -499,9 +499,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       child: Row(
                                         children: [
                                           Expanded(child: _smallInfoBox(row['unit'] ?? 'الوحدة')),
-                                          const SizedBox(width: 120),
+                                          const SizedBox(width: 40),
                                           Expanded(child: _smallInfoBox(row['qty'] ?? '0')),
-                                          const SizedBox(width: 120),
+                                          const SizedBox(width: 40),
                                           Expanded(child: _smallInfoBox(row['purchase'] ?? '0 ج')),
                                         ],
                                       ),
@@ -588,25 +588,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _outlinedInfoBox(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color.fromRGBO(240, 240, 240, 1)),
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: AppColors.black60,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
       ),
     );
   }

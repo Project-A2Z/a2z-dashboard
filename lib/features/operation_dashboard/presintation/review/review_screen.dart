@@ -29,9 +29,8 @@ void _onReply(ReviewModel review) {
     context,
     MaterialPageRoute(
       builder: (_) => ReplyScreen(
-        reviewId: review.id,
+        review: review,
         onReplySent: (sentReply) {
-          
           context.read<ReviewsCubit>().refresh();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('تم إرسال الرد')),
@@ -42,47 +41,6 @@ void _onReply(ReviewModel review) {
   );
 }
 
-
-Future<void> _onHide(ReviewModel review) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text('تأكيد الإخفاء'),
-      content: const Text('هل تريد إخفاء هذا التقييم؟'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('إخفاء')),
-      ],
-    ),
-  );
-
-  if (confirmed != true) return;
-
-  
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  try {
-    await ApiService().hideReview(review.id); 
-    if (mounted) {
-      Navigator.pop(context); 
-      context.read<ReviewsCubit>().refresh();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إخفاء التقييم بنجاح')),
-      );
-    }
-  } catch (e) {
-    if (mounted) Navigator.pop(context);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل الإخفاء: ${e.toString()}')),
-      );
-    }
-  }
-}
 
 
 Future<void> _onDelete(ReviewModel review) async {
@@ -166,9 +124,13 @@ Future<void> _onDelete(ReviewModel review) async {
                 children: [
                   Directionality(
                     textDirection: TextDirection.ltr,
-                    child: const Padding(
-                      padding: EdgeInsets.all(15.0),
-                      child: DashboardHeader(title: "التعليقات والمراجعات"),
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: DashboardHeader(title: "التعليقات والمراجعات",
+                       onRefreshTap: () {
+                          context.read<ReviewsCubit>().fetchAllReviewsForAllProducts();
+                        },
+                      ),
                     ),
                   ),
                   Expanded(
@@ -489,6 +451,7 @@ Future<void> _onDelete(ReviewModel review) async {
     color: AppColors.black60,
   ),
   offset: const Offset(0, 40),
+  color: AppColors.background,
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(8),
   ),
@@ -496,30 +459,19 @@ Future<void> _onDelete(ReviewModel review) async {
     const PopupMenuItem(
       value: 'reply',
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.reply_outlined, size: 20),
-          SizedBox(width: 10),
-          Text('رد'),
+          Center(child: Text('رد',style: TextStyle(fontSize: 16))),
         ],
       ),
     ),
-    const PopupMenuItem(
-      value: 'hide',
-      child: Row(
-        children: [
-          Icon(Icons.visibility_off_outlined, size: 20),
-          SizedBox(width: 10),
-          Text('إخفاء'),
-        ],
-      ),
-    ),
+    
     const PopupMenuItem(
       value: 'delete',
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.delete_outline, color: Colors.red, size: 20),
-          SizedBox(width: 10),
-          Text('حذف', style: TextStyle(color: Colors.red)),
+          Center(child: Text('حذف', style: TextStyle(color: Colors.red,fontSize: 16))),
         ],
       ),
     ),
@@ -527,9 +479,8 @@ Future<void> _onDelete(ReviewModel review) async {
   onSelected: (value) async {
     if (value == 'reply') {
       _onReply(review);
-    } else if (value == 'hide') {
-      _onHide(review);
-    } else if (value == 'delete') {
+    } 
+     else if (value == 'delete') {
       _onDelete(review);
     }
   },
@@ -573,13 +524,13 @@ Future<void> _onDelete(ReviewModel review) async {
             children: [
               IconButton(
                 icon: Icon(
-                  Icons.chevron_right,
-                  color: currentPage > 1 ? Colors.black87 : Colors.grey[400],
+                  Icons.chevron_left,
+                  color: currentPage > 1 ? AppColors.primary : Colors.grey[400],
                 ),
-                onPressed: currentPage > 1
+                onPressed: currentPage < totalPages
                     ? () {
                         setState(() {
-                          currentPage--;
+                          currentPage++;
                         });
                       }
                     : null,
@@ -617,13 +568,13 @@ Future<void> _onDelete(ReviewModel review) async {
               ),
               IconButton(
                 icon: Icon(
-                  Icons.chevron_left,
-                  color: currentPage < totalPages ? Colors.black87 : Colors.grey[400],
+                  Icons.chevron_right,
+                  color: currentPage < totalPages ? AppColors.primary : Colors.grey[400],
                 ),
-                onPressed: currentPage < totalPages
+                onPressed: currentPage > 1
                     ? () {
                         setState(() {
-                          currentPage++;
+                          currentPage--;
                         });
                       }
                     : null,

@@ -8,16 +8,36 @@ class OperationNotificationCubit extends Cubit<OperationNotificationState> {
   OperationNotificationCubit(this.notificationService)
       : super(OperationNotificationInitial());
 
+
   Future<void> loadNotifications() async {
     emit(OperationNotificationLoading());
     try {
       final response = await notificationService.fetchOperationNotifications();
+ 
+
+
+      final unreadNotifications = response.data
+          .where((n) => n.isRead == false)
+          .toList();
+
       emit(OperationNotificationLoaded(
-        notifications: response.data,
-        unreadCount: response.unreadCount,
+        notifications: unreadNotifications,
+        unreadCount: unreadNotifications.length,
       ));
+      
     } catch (e) {
       emit(OperationNotificationError(e.toString()));
     }
   }
+Future<void> markAllAsRead() async {
+  try {
+
+    await notificationService.markAllNotificationsAsRead();
+    loadNotifications();
+  } catch (e) {
+    print("Error marking notifications as read: $e");
+    emit(OperationNotificationError("فشل في تحديث حالة الإشعارات"));
+  }
+}
+
 }

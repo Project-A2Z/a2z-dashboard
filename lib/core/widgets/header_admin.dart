@@ -63,7 +63,35 @@ class _DashboardHeader_adminState extends State<DashboardHeader_admin> {
             ),
             const SizedBox(width: 16),
 
-            
+            ElevatedButton.icon(
+              onPressed: widget.onRefreshTap ??
+                  () {
+                    
+                  },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  side: const BorderSide(color: AppColors.primary),
+                ),
+              ),
+              label: const Row(
+                children: [
+                  Text(
+                    "تحديث",
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  Icon(Icons.refresh_rounded, color: AppColors.primary),
+                ],
+              ),
+            ),
            
           ],
         ),

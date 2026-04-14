@@ -1,0 +1,58 @@
+Future<ProductModel> updateProduct({
+    required String id,
+    required String nameAr,
+    required String nameEn,
+    required String categoryAr,
+    required String categoryEn,
+    required String descriptionAr,
+    required String descriptionEn,
+    required List<Map<String, String>> advProduct,
+    required List imageBytesList,
+  }) async {
+    try {
+      final formData = FormData();
+
+      formData.fields.addAll([
+        MapEntry('name[ar]', nameAr),
+        MapEntry('name[en]', nameEn),
+        MapEntry('category[ar]', categoryAr),
+        MapEntry('category[en]', categoryEn),
+        MapEntry('description[ar]', descriptionAr),
+        MapEntry('description[en]', descriptionEn),
+      ]);
+
+      for (int i = 0; i < advProduct.length; i++) {
+        formData.fields.add(MapEntry('advProduct[$i][ar]', advProduct[i]['ar'] ?? ''));
+        formData.fields.add(MapEntry('advProduct[$i][en]', advProduct[i]['en'] ?? ''));
+      }
+
+      if (imageBytesList.isNotEmpty) {
+        for (int i = 0; i < imageBytesList.length; i++) {
+          formData.files.add(
+            MapEntry(
+              'image',
+              MultipartFile.fromBytes(imageBytesList[i], filename: 'image_$i.jpg'),
+            ),
+          );
+        }
+      }
+
+      final res = await _dio.put(
+        '/products/$id',
+        queryParameters: {'lang': 'en'},
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return ProductModel.fromJson(res.data['product'] ?? res.data['data'] ?? {});
+      } else {
+        throw Exception('Failed to update product: $res');
+      }
+    } catch (e) {
+      throw Exception('Error updating product: $e');
+    }
+  }

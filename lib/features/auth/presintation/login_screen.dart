@@ -63,17 +63,23 @@ class _LoginScreenState extends State<LoginScreen> {
             setState(() {
               _errorMessage = null;
             });
-          
-            if (state.role == 'admin') {
+
+            final role = state.role.toLowerCase();
+
+            if (role == 'admin') {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const AdminDashboard()),
               );
-            } else if (state.role == 'operation') {
+            } else if (role == 'operation' || role == 'operations' || role.contains('operation')) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const ProductsScreen()),
               );
+            } else {
+              setState(() {
+                _errorMessage = 'نوع المستخدم غير مدعوم: ${state.role}';
+              });
             }
           } else if (state is LoginFailure) {
             Navigator.pop(context);

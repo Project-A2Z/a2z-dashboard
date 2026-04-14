@@ -2,6 +2,9 @@
 import 'dart:async';
 import 'package:disctop_app/core/widgets/filter_stock.dart';
 import 'package:disctop_app/core/widgets/header_operation.dart';
+import 'package:disctop_app/features/operation_dashboard/operation_cubit/notification_cubit/notification_cubit.dart';
+import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/category_cubit.dart';
+import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/category_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:disctop_app/core/app_colors.dart';
@@ -25,22 +28,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   Timer? _debounce;
   int currentPage = 1;
-int itemsPerPage = 20;
+int itemsPerPage = 12;
 
-  
-  @override
-  void initState() {
-    super.initState();
+  Timer? _notificationTimer;
+
+  bool _isInStock(ProductModel product) {
+    if (product.stockQty > 0) return true;
+    return product.productVariants.any((variant) => variant.totalQuantity > 0);
+  }
+
+@override
+void initState() {
+  super.initState();
     context.read<ProductsCubit>().fetchProducts();
-  }
 
- 
-  @override
-  void dispose() {
-    _debounce?.cancel();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final cubit = context.read<OperationNotificationCubit>();
+
+    
+    cubit.loadNotifications();
+
+    
+    _notificationTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+      cubit.loadNotifications();
+    });
+  });
+}
+
+@override
+void dispose() {
+  _notificationTimer?.cancel();
+  _debounce?.cancel();
     _searchCtrl.dispose();
-    super.dispose();
-  }
+  super.dispose();
+}
+
+
 
   void _onSearchChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -69,11 +92,7 @@ int itemsPerPage = 20;
                 padding: const EdgeInsets.all(20),
                 child: BlocBuilder<ProductsCubit, ProductsState>(
                   builder: (context, state) {
-                    final List<String> categories = (state is ProductsLoaded)
-                        ? state.products.map((p) => p.category).toSet().toList()
-                        : [];
-                    final List<String> dropItems = ["الكل", ...categories];
-
+                    
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return Column(
@@ -90,7 +109,6 @@ int itemsPerPage = 20;
   },
   ),
 
-
                             const SizedBox(height: 25),
                             _addButtonRow(),
                             const SizedBox(height: 25),
@@ -101,7 +119,7 @@ int itemsPerPage = 20;
                               },
                             ),
                             const SizedBox(height: 25),
-                            _dropdownSearch(dropItems),
+                            _dropdownSearch(),
                             const SizedBox(height: 25),
                             Expanded(
                               child: _buildProductsGrid(state, constraints),
@@ -129,9 +147,9 @@ Widget _buildProductsGrid(ProductsState state, BoxConstraints constraints) {
     List<ProductModel> products = state.products;
 
     if (currentFilter == StockFilter.outOfStock) {
-      products = products.where((p) => p.stockQty == 0).toList();
+      products = products.where((p) => !_isInStock(p)).toList();
     } else if (currentFilter == StockFilter.inStock) {
-      products = products.where((p) => p.stockQty > 0).toList();
+      products = products.where((p) => _isInStock(p)).toList();
     }
 
     if (selectedValue != null &&
@@ -179,145 +197,143 @@ Widget _buildProductsGrid(ProductsState state, BoxConstraints constraints) {
       padding: EdgeInsets.zero,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 15,
-        childAspectRatio: 0.8,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.95,
       ),
       itemCount: paginated.length,
       itemBuilder: (_, i) {
         final p = paginated[i];
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailScreen(product: p),
-              ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.black16),
-            ),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Stack(
-                    children: [
-                       Container(
-                            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.black16),
-            ),
-                            child: p.imageList.isNotEmpty
-                          ?
-                            Image.network(
-                                p.imageList.first,
-                                height: 130,
-                                width: double.infinity,
-                                fit: BoxFit.fill,
-                              )
-                          
-                          : const SizedBox(
-                              height: 130,
-                              child: Center(
-                                child:
-                                    Icon(Icons.image_not_supported, size: 40),
-                              ),
-                            ),),
-                      Positioned(
-                        top: 90,
-                        right: 20,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: p.stockQty > 0
-                                ? AppColors.primary
-                                : AppColors.disabled,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            p.stockQty > 0
-                                ? "متوفر في المخزون"
-                                : "نفذ في المخزون",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+        final inStock = _isInStock(p);
+         return InkWell(
+  onTap: () async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: p),
+      ),
+    );
+    if (!mounted) return;
+    context.read<ProductsCubit>().fetchProducts();
+  },
+  child: LayoutBuilder(
+    builder: (context, cardConstraints) {
+      double cardWidth = cardConstraints.maxWidth;
+      double imageHeight = cardWidth * 0.5;
+      double fontSize = cardWidth < 150 ? 14 : 16; 
+      double categoryFontSize = cardWidth < 150 ? 10 : 12;
+
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.black16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.black16),
+                    ),
+                    child: p.imageList.isNotEmpty
+                        ? Image.network(
+                            p.imageList.first,
+                            height: imageHeight,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : SizedBox(
+                            height: imageHeight,
+                            child: const Center(
+                              child: Icon(Icons.image_not_supported, size: 40),
                             ),
                           ),
+                  ),
+                  Positioned(
+                    top: imageHeight - 34,
+                    right: 15,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: inStock
+                            ? AppColors.primary
+                            : AppColors.disabled,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        inStock ? "متوفر في المخزون" : "نفذ في المخزون",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 5),
-               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                   Container(
-                           decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: AppColors.black16),
-                            ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.black16),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     child: Text(
                       p.category,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.black60,
-                        fontSize: 10,
+                        fontSize: categoryFontSize,
                       ),
                     ),
                   ),
                 ),
-               
-                
-                ],
-               ),
-               SizedBox(height: 7,),
-               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                   
-                   Text(
-                    p.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.black60,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16
-                    ),
-                  ),
-                
-                ],
-               ),
-               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                  'ج ${p.price}',
-                  style: const TextStyle(
-                    color: AppColors.black60,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16
-                  ),
-                                  ),
-                ],
-               )
               ],
             ),
-          ),
-        );
+            const SizedBox(height: 4),
+            Directionality(
+              textDirection: TextDirection.rtl,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    p.name,
+                    textDirection: TextDirection.rtl,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: AppColors.black60,
+                      fontWeight: FontWeight.bold,
+                      fontSize: fontSize,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+           
+          ],
+        ),
+      );
+    },
+  ),
+);
+
       },
     );
   } else if (state is ProductsError) {
@@ -362,7 +378,20 @@ Widget _buildProductsGrid(ProductsState state, BoxConstraints constraints) {
         ],
       );
 
-  Widget _dropdownSearch(List<String> items) => Row(
+  Widget _dropdownSearch() {
+  return BlocBuilder<CategoriesCubit, CategoriesState>(
+    builder: (context, state) {
+      List<String> items = ["الكل"];
+
+      if (state is CategoriesLoading) {
+        return const CircularProgressIndicator();
+      }
+
+      if (state is CategoriesLoaded) {
+        items.addAll(state.categories.map((e) => e.toString()).toList());
+      }
+
+      return Row(
         children: [
           Directionality(
             textDirection: TextDirection.rtl,
@@ -376,30 +405,24 @@ Widget _buildProductsGrid(ProductsState state, BoxConstraints constraints) {
                 borderRadius: BorderRadius.circular(32),
               ),
               child: DropdownButtonHideUnderline(
-                
                 child: DropdownButton<String>(
                   value: selectedValue,
-                  hint: const Text('الفئة', textDirection: TextDirection.rtl,style: TextStyle(color: AppColors.black60),),
-                  icon:  Icon(Icons.arrow_drop_down_outlined, color: AppColors.black60),
-                  style: const TextStyle(fontSize: 16, color: AppColors.black60),
-                  borderRadius: BorderRadius.circular(15),
-                  
+                  hint: const Text('الفئة'),
                   isExpanded: true,
                   onChanged: (val) {
                     setState(() => selectedValue = val);
                   },
-                  items: items
-                      .map(
-                        (item) => DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(item, textDirection: TextDirection.rtl),
-                        ),
-                      )
-                      .toList(),
+                  items: items.map((item) {
+                    return DropdownMenuItem(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
                 ),
               ),
             ),
           ),
+
           const Spacer(),
           SizedBox(
             width: 328,
@@ -443,7 +466,7 @@ Widget _buildProductsGrid(ProductsState state, BoxConstraints constraints) {
             ),
           ),
         ],
-      );
+      );});}
 
 
 Widget _pagination(List<ProductModel> allProducts) {

@@ -42,7 +42,7 @@ class InquiryCubit extends Cubit<InquiryState> {
     emit(InquiryLoading());
     try {
       
-      await api.updateInquiryStatus(id, newStatus);
+     await api.updateInquiryStatus(id, newStatus);
 
       
       await fetchInquiries();

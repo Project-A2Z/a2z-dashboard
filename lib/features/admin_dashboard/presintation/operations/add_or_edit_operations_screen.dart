@@ -2,6 +2,7 @@ import 'package:disctop_app/core/app_colors.dart';
 import 'package:disctop_app/core/widgets/sidebar_widget_admin.dart';
 import 'package:disctop_app/features/admin_dashboard/cubit/operations_cubit/add_or_edit_operation_cubit.dart';
 import 'package:disctop_app/features/admin_dashboard/cubit/operations_cubit/add_or_edit_operation_state.dart';
+import 'package:disctop_app/features/admin_dashboard/cubit/operations_cubit/operations_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,6 +24,8 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _salaryController;
+  late TextEditingController _passwordController;
+
   DateTime? _selectedDate;
   final selectedKey = "الموظفين";
 
@@ -31,6 +34,9 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
   @override
   void initState() {
     super.initState();
+  
+_passwordController = TextEditingController(); 
+
     _nameController =
         TextEditingController(text: widget.operation?.firstName ?? '');
     _emailController =
@@ -43,6 +49,59 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
         ? DateTime.tryParse(widget.operation!.dateOfSubmission!)
         : null;
   }
+ 
+  Future<String?> _showAdminPasswordDialog(BuildContext context) async {
+    final TextEditingController _controller = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Directionality(
+            textDirection: TextDirection.rtl,
+            child: const Text(
+              'تأكيد الهوية',
+              style: TextStyle(color: AppColors.primary),
+            ),
+          ),
+          backgroundColor: AppColors.background,
+          content: Directionality(
+            textDirection: TextDirection.rtl,
+            child: TextField(
+              controller: _controller,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: 'اكتب كلمة المرور',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(color: AppColors.error, fontSize: 16),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text(
+                'تأكيد',
+                style: TextStyle(color: AppColors.primary, fontSize: 16),
+              ),
+              onPressed: () {
+                Navigator.pop(context, _controller.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -64,11 +123,10 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(state.message)),
                       );
+                      context.read<OperationsCubit>().fetchOperations();
                       Navigator.pop(context);
                     } else if (state is AddOrEditEmployeeError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
+                       Center(child: Text("خطأ في تحميل الموظفين",style: TextStyle(color: Colors.red,fontSize: 20),));
                     }
                   },
                   builder: (context, state) {
@@ -98,6 +156,7 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
                               children: [
                                 Row(
                                   children: [
+                                    
                                     Expanded(child: _buildField("الاسم", _nameController)),
                                     const SizedBox(width: 20),
                                     Expanded(child: _buildField("رقم الهاتف", _phoneController)),
@@ -115,6 +174,10 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
                                 Row(
                                   children: [
                                     Expanded(child: _buildField("المرتب", _salaryController)),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: _buildField("تعديل كلمة المرور", _passwordController),
+                                    )
                                   ],
                                 ),
                               ],
@@ -163,7 +226,10 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
         filled: true,
         fillColor: Colors.white,
       ),
-      validator: (v) => v!.isEmpty ? "هذا الحقل مطلوب" : null,
+       validator: (v) {
+      if (label == "كلمة المرور") return null; // Optional
+      return v!.isEmpty ? "هذا الحقل مطلوب" : null;
+    },
     );
   }
 
@@ -216,22 +282,39 @@ class _AddOrEditEmployeeScreenState extends State<AddOrEditEmployeeScreen> {
   Widget _buildSubmitButton(
       BuildContext context, AddOrEditEmployeeState state) {
     return ElevatedButton(
-      onPressed: state is AddOrEditEmployeeLoading
-          ? null
-          : () {
-              if (_formKey.currentState!.validate()) {
-                context.read<AddOrEditEmployeeCubit>().saveEmployee(
-                      id: widget.operation?.id,
-                      firstName: _nameController.text,
-                      email: _emailController.text,
-                      phoneNumber: _phoneController.text,
-                      department: "e-commerce",
-                      dateOfSubmission:
-                          _selectedDate?.toIso8601String() ?? '',
-                      salary: _salaryController.text,
-                    );
-              }
-            },
+onPressed: state is AddOrEditEmployeeLoading
+    ? null
+    : () async {
+        if (_formKey.currentState!.validate()) {
+
+          final bool isPasswordChanging = _passwordController.text.trim().isNotEmpty;
+          String? adminPass;
+
+          if (isPasswordChanging) {
+            adminPass = await _showAdminPasswordDialog(context);
+
+            if (adminPass == null || adminPass.isEmpty) return;
+          }
+
+context.read<AddOrEditEmployeeCubit>().saveEmployee(
+  id: widget.operation?.id,
+  firstName: _nameController.text,
+  email: _emailController.text,
+  phoneNumber: _phoneController.text,
+  department: "e-commerce",
+  dateOfSubmission: _selectedDate?.toIso8601String() ?? '',
+  salary: _salaryController.text,
+
+  password: _passwordController.text.trim().isEmpty
+      ? null
+      : _passwordController.text.trim(),
+
+  adminPassword: adminPass,
+);
+
+        }
+      },
+
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),

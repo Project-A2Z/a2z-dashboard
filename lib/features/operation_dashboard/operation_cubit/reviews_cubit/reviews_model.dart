@@ -5,6 +5,7 @@ class ReviewModel {
   final String description;
   final int rateNum;
   final DateTime createdAt;
+  final String reply;
 
   ReviewModel({
     required this.id,
@@ -13,6 +14,7 @@ class ReviewModel {
     required this.description,
     required this.rateNum,
     required this.createdAt,
+    required this.reply,
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
@@ -30,11 +32,13 @@ class ReviewModel {
       id: json['_id']?.toString() ?? '',
       user: user,
       productId: json['productId']?.toString() ?? '',
+      reply: json['reply']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       rateNum: (json['rateNum'] is int)
           ? json['rateNum']
           : int.tryParse(json['rateNum']?.toString() ?? '0') ?? 0,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+
     );
   }
 }

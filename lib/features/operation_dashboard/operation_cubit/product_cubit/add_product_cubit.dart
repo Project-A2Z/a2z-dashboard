@@ -24,14 +24,19 @@ class AddProductCubit extends Cubit<AddProductState> {
     try {
       final product = await apiService.updateProduct(
         id: productId,
-        nameAr: nameAr,
-        nameEn: nameEn,
-        descriptionAr: descriptionAr,
-        descriptionEn: descriptionEn,
-        categoryAr: categoryAr,
-        categoryEn: categoryEn,
+        name: nameAr,
+        price: '0.0', // placeholder or update to required format
+        purchasePrice: '0.0',
+        description: descriptionAr,
+        category: categoryAr,
+        stockQty: 0,
+        isKG: false,
+        isTON: false,
+        isLITER: false,
+        isCUBIC_METER: false,
+        newImages: imageBytesList,
+        deleteImages: [],
         advProduct: advProduct,
-        imageBytesList: imageBytesList,
       );
 
       if (variantsDataList != null) {

@@ -1,0 +1,65 @@
+    required String id,
+    required String name,
+    required String price,
+    required String purchasePrice,
+    required String description,
+    required String category,
+    required int stockQty,
+    required bool isKG,
+    required bool isTON,
+    required bool isLITER,
+    required bool isCUBIC_METER,
+    required List<Uint8List>? newImages, // صور جديدة
+    required List<String>? deleteImages,
+    required List<Map<String, String>> advProduct,
+  }) async {
+    try {
+      // ✅ نجهز formData زي الـ create
+      final formData = FormData();
+
+      formData.fields.addAll([
+        MapEntry('name', name),
+        MapEntry('price', double.parse(price).toString()),
+        MapEntry('PurchasePrice', double.parse(purchasePrice).toString()),
+        MapEntry('description', description),
+        MapEntry('category', category),
+        MapEntry('stockQty', stockQty.toString()),
+        MapEntry('IsKG', isKG.toString()),
+        MapEntry('IsTON', isTON.toString()),
+        MapEntry('IsLITER', isLITER.toString()),
+        MapEntry('IsCUBIC_METER', isCUBIC_METER.toString()),
+      ]);
+
+      if (newImages != null && newImages.isNotEmpty) {
+        for (int i = 0; i < newImages.length; i++) {
+          formData.files.add(
+            MapEntry(
+              'image',
+              MultipartFile.fromBytes(newImages[i], filename: 'image_$i.jpg'),
+            ),
+          );
+        }
+      }
+
+      // ✅ لو فيه صور عايز تحذفها
+      if (deleteImages != null && deleteImages.isNotEmpty) {
+        formData.fields.add(MapEntry('Deleteimage', deleteImages.join(',')));
+      }
+      final res = await _dio.put(
+        '/products/$id',
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      print('✅ RESPONSE DATA: ${res.data}');
+      print('✅ STATUS CODE: ${res.statusCode}');
+
+      if (res.statusCode == 200 && res.data['status'] == 'success') {
+        return ProductModel.fromJson(res.data['product']);
+      } else {
+        throw Exception('فشل تعديل المنتج: ${res.data}');
+      }
+    } catch (e) {

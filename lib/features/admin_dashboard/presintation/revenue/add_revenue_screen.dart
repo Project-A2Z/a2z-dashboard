@@ -1,9 +1,12 @@
 import 'package:disctop_app/core/api_service.dart';
 import 'package:disctop_app/core/app_colors.dart';
+import 'package:disctop_app/core/payment_mappers.dart';
 import 'package:disctop_app/core/widgets/header_admin.dart';
 import 'package:disctop_app/core/widgets/sidebar_widget_admin.dart';
+import 'package:disctop_app/features/admin_dashboard/cubit/control_cubit/control_cubit.dart';
 import 'package:disctop_app/features/admin_dashboard/cubit/revenue_cubit/add_revenue_cubit.dart';
 import 'package:disctop_app/features/admin_dashboard/cubit/revenue_cubit/add_revenue_state.dart';
+import 'package:disctop_app/features/admin_dashboard/cubit/revenue_cubit/revenue_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/payments_cubit/payment_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +27,7 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
   final selectedKey = "الإيرادات";
   String paymentWay = "كاش";
   String paymentStatus = "تم الدفع";
-  String type = "مبيعات";
+  String paymentWith = "انستا باي";
 
   @override
   void dispose() {
@@ -56,6 +59,9 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                       );
                       _amountController.clear();
                       _dateController.clear();
+                      context.read<PaymentCubit_revenue>().fetchPayments();
+    context.read<ProfitCubit>().fetchProfits();
+                      Navigator.pop(context);
                     } else if (state is AddPaymentError) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -124,20 +130,25 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                                 const SizedBox(height: 35),
                                 _buildRadioSection(
                                   title: "طريقة الدفع",
-                                  options: ["كاش", "اونلاين"],
+                                  options: PaymentMappers.paymentWayOptionsAr,
                                   selected: paymentWay,
                                   onChanged: (val) =>
                                       setState(() => paymentWay = val!),
                                 ),
+                                if (paymentWay == 'اونلاين') ...[
+                                  const SizedBox(height: 35),
+                                  _buildRadioSection(
+                                    title: "الدفع بواسطة",
+                                    options: PaymentMappers.paymentWithOptionsAr,
+                                    selected: paymentWith,
+                                    onChanged: (val) =>
+                                        setState(() => paymentWith = val!),
+                                  ),
+                                ],
                                 const SizedBox(height: 35),
                                 _buildRadioSection(
                                   title: "الحالة",
-                                  options: [
-                                    "تم دفع جزء",
-                                    "تم الدفع",
-                                    "تم الاسترجاع",
-                                    "تم الإلغاء"
-                                  ],
+                                  options: PaymentMappers.paymentStatusOptionsAr,
                                   selected: paymentStatus,
                                   onChanged: (val) =>
                                       setState(() => paymentStatus = val!),
@@ -169,15 +180,31 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
                                                   }
                                                   cubit.createPayment(
                                                     totalPrice: amount,
-                                                    paymentWay: paymentWay ==
-                                                            "كاش"
-                                                        ? "cash"
-                                                        : "online",
-                                                    paymentWith: "instaPay",
+                                                    paymentWay:
+                                                        PaymentMappers
+                                                            .toPaymentWayApi(
+                                                              paymentWay,
+                                                            ),
+                                                    paymentWith:
+                                                        PaymentMappers
+                                                                    .toPaymentWayApi(
+                                                                      paymentWay,
+                                                                    ) ==
+                                                                'Online'
+                                                            ? PaymentMappers
+                                                                .toPaymentWithApi(
+                                                                  paymentWith,
+                                                                )
+                                                            : null,
                                                     paymentStatus:
-                                                        _mapPaymentStatus(
-                                                            paymentStatus),
-                                                    type:'revenues',
+                                                        PaymentMappers
+                                                            .toPaymentStatusApi(
+                                                              paymentStatus,
+                                                            ),
+                                                    type: PaymentMappers
+                                                        .toPaymentTypeApi(
+                                                          'revenues',
+                                                        ),
                                                   );
                                                 },
                                           style: ElevatedButton.styleFrom(
@@ -253,23 +280,6 @@ class _AddPaymentScreenState extends State<AddPaymentScreen> {
       ),
     );
   }
-
-  // 🧩 تحويل الحالات
-  String _mapPaymentStatus(String status) {
-    switch (status) {
-      case "تم الدفع":
-        return "paid";
-      case "تم دفع جزء":
-        return "deposit";
-      case "تم الاسترجاع":
-        return "refunded";
-      case "تم الإلغاء":
-        return "cancelled";
-      default:
-        return "pending";
-    }
-  }
-
 
   // 🧱 TextField Builder
   Widget _buildTextField({

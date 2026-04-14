@@ -30,20 +30,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
     context.read<OrdersCubit>().fetchOrders();
   }
 
+  String _normalizeStatusKey(String status) {
+    final cleaned = status.trim().toLowerCase().replaceAll(RegExp(r'[-_\s]'), '');
+    switch (cleaned) {
+      case 'underreview':
+        return 'UnderReview';
+      case 'reviewed':
+        return 'Reviewed';
+      case 'prepared':
+        return 'Prepared';
+      case 'shipped':
+        return 'Shipped';
+      case 'delivered':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
   
   String _translateStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'under review':
+    switch (_normalizeStatusKey(status)) {
+      case 'UnderReview':
         return 'قيد المراجعة';
-      case 'reviewed':
+      case 'Reviewed':
         return 'تم المراجعة';
-      case 'prepared':
+      case 'Prepared':
         return 'تم التجهيز';
-      case 'shipped':
+      case 'Shipped':
         return 'تم الشحن';
-      case 'delivered':
+      case 'Delivered':
         return 'تم التسليم';
-      case 'cancelled':
+      case 'Cancelled':
         return 'تم الإلغاء';
       default:
         return status;
@@ -64,24 +84,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   
   Color _statusColor(String status) {
-    status = status.toLowerCase();
-    if (status.contains('prepared') || status.contains('تم التجهيز')) {
+    final statusKey = _normalizeStatusKey(status);
+    if (statusKey == 'Prepared' || status.contains('تم التجهيز')) {
       return AppColors.primary;
     }
-    if (status.contains('under review') || status.contains('قيد المراجعة')) {
+    if (statusKey == 'UnderReview' || status.contains('قيد المراجعة')) {
       return  AppColors.error;
     }
-    if (status.contains('reviewed') || status.contains('تم المراجعة')) {
+    if (statusKey == 'Reviewed' || status.contains('تم المراجعة')) {
       return  AppColors.secondary2;
     }
     
-    if (status.contains('shipped') || status.contains('شحن')) {
+    if (statusKey == 'Shipped' || status.contains('شحن')) {
       return AppColors.disabled;
     }
-    if (status.contains('delivered') || status.contains('تسليم')) {
+    if (statusKey == 'Delivered' || status.contains('تسليم')) {
       return AppColors.secondary1;
     }
-    if (status.contains('cancelled') || status.contains('إلغاء')) {
+    if (statusKey == 'Cancelled' || status.contains('إلغاء')) {
       return const Color(0xFFE53935);
     }
     return const Color(0xFF757575);
@@ -113,7 +133,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   children: [
                     Directionality(
                       textDirection: TextDirection.ltr,
-                      child: DashboardHeader(title: "الطلبات")),
+                      child: DashboardHeader(title: "الطلبات",onRefreshTap: () {
+                        setState(() {
+                          context.read<OrdersCubit>().fetchOrders();
+                        });
+                      },)),
                     const SizedBox(height: 24),
 
                     

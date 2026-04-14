@@ -10,7 +10,10 @@ class ProfitCubit extends Cubit<ProfitState> {
 
   Future<void> fetchProfits() async {
     try {
-      emit(ProfitLoading());
+      if (state is! ProfitLoading) {
+  emit(ProfitLoading());
+}
+
       final res = await apiService.getAdminProfitStatistics();
       emit(ProfitLoaded(res));
     } catch (e) {

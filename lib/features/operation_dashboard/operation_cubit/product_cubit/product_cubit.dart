@@ -17,7 +17,6 @@ class ProductsCubit extends Cubit<ProductsState> {
     }
   }
 
-  
   Future<void> searchProducts({
     String? nameRegex,
     String? categoryRegex,

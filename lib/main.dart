@@ -20,7 +20,9 @@ import 'package:disctop_app/features/operation_dashboard/operation_cubit/notific
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/orders_cubit/order_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/payments_cubit/payment_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/add_product_cubit.dart';
+import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/category_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/product_cubit.dart';
+import 'package:disctop_app/features/operation_dashboard/operation_cubit/product_cubit/update_product_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/operation_cubit/reviews_cubit/reviews_cubit.dart';
 import 'package:disctop_app/features/operation_dashboard/presintation/inquirey/inquirey_screen.dart';
 import 'package:disctop_app/features/operation_dashboard/presintation/orders/orders_screen.dart';
@@ -34,9 +36,10 @@ import 'core/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
   
- 
+   
   await initializeDateFormatting('ar', null);
 
   final api = ApiService();
@@ -71,6 +74,8 @@ class MyApp extends StatelessWidget {
           BlocProvider(create: (context) => AddOrEditEmployeeCubit(context.read<ApiService>())),
           BlocProvider(create: (context) => OtpCubit(context.read<ApiService>())),
           BlocProvider(create: (context) => OperationNotificationCubit(context.read<ApiService>())),
+          BlocProvider(create: (context) => UpdateProductCubit(context.read<ApiService>())),
+          BlocProvider(create: (context) => CategoriesCubit(context.read<ApiService>())..loadCategories()),
         ],
         
         child: MaterialApp(

@@ -134,9 +134,7 @@ class _InquiryDetailScreenState extends State<InquiryDetailScreen> {
                           children: [
                             Directionality(
                               textDirection: TextDirection.ltr,
-                              child: DashboardHeader(title: "التواصل", onRefreshTap: (){
-                               context.read<InquiryCubit>().fetchInquiryDetails(inquiry.id);
-                              },)
+                              child: DashboardHeader(title: "التواصل",showBack: true,showRefresh: false,)
                             ),
                             const SizedBox(height: 20),
 

@@ -1,6 +1,6 @@
 class ProfitModel {
   final int totalOperations;
-  final int totalProfit;
+  final double totalProfit;
   final ExpenseRevenue expenses;
   final ExpenseRevenue revenues;
   final List<MonthlyStatistic> monthlyStatistics;
@@ -18,8 +18,8 @@ class ProfitModel {
   factory ProfitModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? json;
     return ProfitModel(
-      totalOperations: data['totalOperations'] ?? 0,
-      totalProfit: data['totalProfit'] ?? 0,
+      totalOperations: (data['totalOperations'] ?? 0).toInt(),
+      totalProfit: (data['totalProfit'] ?? 0).toDouble(),
       expenses: ExpenseRevenue.fromJson(data['Expenses'] ?? {}),
       revenues: ExpenseRevenue.fromJson(data['Revenues'] ?? {}),
       monthlyStatistics: (data['monthlyStatistics'] as List?)
@@ -36,11 +36,11 @@ class ProfitModel {
 
 class ExpenseRevenue {
   final int totalCount;
-  final int totalAmount;
+  final double totalAmount;
   final int onlineCount;
   final int cashCount;
-  final int onlineAmount;
-  final int cashAmount;
+  final double onlineAmount;
+  final double cashAmount;
 
   ExpenseRevenue({
     required this.totalCount,
@@ -53,20 +53,20 @@ class ExpenseRevenue {
 
   factory ExpenseRevenue.fromJson(Map<String, dynamic> json) {
     return ExpenseRevenue(
-      totalCount: json['totalCount'] ?? 0,
-      totalAmount: json['totalAmount'] ?? 0,
-      onlineCount: json['onlineCount'] ?? 0,
-      cashCount: json['cashCount'] ?? 0,
-      onlineAmount: json['onlineAmount'] ?? 0,
-      cashAmount: json['cashAmount'] ?? 0,
+      totalCount: (json['totalCount'] ?? 0).toInt(),
+      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
+      onlineCount: (json['onlineCount'] ?? 0).toInt(),
+      cashCount: (json['cashCount'] ?? 0).toInt(),
+      onlineAmount: (json['onlineAmount'] ?? 0).toDouble(),
+      cashAmount: (json['cashAmount'] ?? 0).toDouble(),
     );
   }
 }
 
 class MonthlyStatistic {
-  final int revenues;
-  final int expenses;
-  final int profit;
+  final double revenues;
+  final double expenses;
+  final double profit;
   final int year;
   final int month;
   final String monthName;
@@ -82,20 +82,20 @@ class MonthlyStatistic {
 
   factory MonthlyStatistic.fromJson(Map<String, dynamic> json) {
     return MonthlyStatistic(
-      revenues: json['revenues'] ?? 0,
-      expenses: json['expenses'] ?? 0,
-      profit: json['profit'] ?? 0,
-      year: json['year'] ?? 0,
-      month: json['month'] ?? 0,
+      revenues: (json['revenues'] ?? 0).toDouble(),
+      expenses: (json['expenses'] ?? 0).toDouble(),
+      profit: (json['profit'] ?? 0).toDouble(),
+      year: (json['year'] ?? 0).toInt(),
+      month: (json['month'] ?? 0).toInt(),
       monthName: json['monthName'] ?? '',
     );
   }
 }
 
 class YearlyStatistic {
-  final int revenues;
-  final int expenses;
-  final int profit;
+  final double revenues;
+  final double expenses;
+  final double profit;
   final int year;
 
   YearlyStatistic({
@@ -107,10 +107,10 @@ class YearlyStatistic {
 
   factory YearlyStatistic.fromJson(Map<String, dynamic> json) {
     return YearlyStatistic(
-      revenues: json['revenues'] ?? 0,
-      expenses: json['expenses'] ?? 0,
-      profit: json['profit'] ?? 0,
-      year: json['year'] ?? 0,
+      revenues: (json['revenues'] ?? 0).toDouble(),
+      expenses: (json['expenses'] ?? 0).toDouble(),
+      profit: (json['profit'] ?? 0).toDouble(),
+      year: (json['year'] ?? 0).toInt(),
     );
   }
 }

@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -50,20 +49,37 @@ class _RevenuesPageState extends State<RevenuesPage> {
   // ignore: unused_element
   Future<void> _printReport(List<PaymentModel> payments) async {
     final pdf = pw.Document();
+    final fontData = await rootBundle.load(
+      'assets/fonts/Cairo/static/Cairo-Regular.ttf',
+    );
+    final arabicFont = pw.Font.ttf(fontData);
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
-          return pw.Table.fromTextArray(
-            headers: [
-              "رقم العملية",
-              "المبلغ",
-              "تاريخ الطلب",
-              "طريقة الدفع",
-              "الحالة",
-            ],
-            data:
-                payments.map((p) {
+          return pw.Directionality(
+            textDirection: pw.TextDirection.rtl,
+            child: pw.Table.fromTextArray(
+              headers: [
+                "رقم العملية",
+                "المبلغ",
+                "تاريخ الطلب",
+                "طريقة الدفع",
+                "الحالة",
+              ],
+              headerStyle: pw.TextStyle(
+                font: arabicFont,
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 11,
+              ),
+              cellStyle: pw.TextStyle(font: arabicFont, fontSize: 10),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColors.grey300,
+              ),
+              cellAlignment: pw.Alignment.center,
+              data: [
+                ...payments.map((p) {
                   final paymentWay = _translatePaymentWay(p.paymentWay);
                   final ps = p.paymentStatus.toLowerCase();
                   final status = switch (ps) {
@@ -76,17 +92,33 @@ class _RevenuesPageState extends State<RevenuesPage> {
                   return [
                     p.numOperation ?? p.orderId,
                     p.totalPrice.toStringAsFixed(0),
-                    p.createdAt.substring(0, 10),
+                    p.createdAt.length >= 10
+                        ? p.createdAt.substring(0, 10)
+                        : p.createdAt,
                     paymentWay,
                     status,
                   ];
-                }).toList(),
+                }),
+                [
+                  'الإجمالي',
+                  payments
+                      .fold<double>(0, (sum, p) => sum + p.totalPrice)
+                      .toStringAsFixed(0),
+                  '',
+                  '',
+                  '',
+                ],
+              ],
+            ),
           );
         },
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+    await Printing.layoutPdf(
+      format: PdfPageFormat.a4,
+      onLayout: (format) => pdf.save(),
+    );
   }
 
   Future<void> _exportToExcel(List<PaymentModel> payments) async {
@@ -203,7 +235,7 @@ class _RevenuesPageState extends State<RevenuesPage> {
                 if (state is ProfitLoading) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primary,));
                 } else if (state is ProfitError) {
-                  return Center(child: Text(state.message));
+                  return Center(child: Text("خطأ في تحميل الإيرادات",style: TextStyle(color: Colors.red,fontSize: 20),));
                 } else if (state is ProfitLoaded) {
                   final data = state.profitData;
 
@@ -234,7 +266,11 @@ class _RevenuesPageState extends State<RevenuesPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const DashboardHeader_admin(title: "الإيرادات"),
+                         DashboardHeader_admin(title: "الإيرادات",onRefreshTap: (){
+                              context.read<PaymentCubit_revenue>().fetchPayments();
+    context.read<ProfitCubit>().fetchProfits();
+
+                        },),
                         const SizedBox(height: 24),
 
                         Row(
@@ -242,6 +278,39 @@ class _RevenuesPageState extends State<RevenuesPage> {
                           children: [
                             Row(
                               children: [
+                                OutlinedButton.icon(
+                                  onPressed: () async {
+                                    final paymentState =
+                                        context
+                                            .read<PaymentCubit_revenue>()
+                                            .state;
+                                    if (paymentState is PaymentLoaded) {
+                                      await _printReport(
+                                        paymentState.payments,
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'البيانات غير جاهزة للطباعة',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.print_outlined),
+                                  label: Text(
+                                    "طباعة التقرير",
+                                    style: TextStyle(color: AppColors.primary),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: AppColors.primary),
+                                    iconColor: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
                                 OutlinedButton.icon(
                                   onPressed: () async {
                                     final paymentState =
@@ -274,238 +343,7 @@ class _RevenuesPageState extends State<RevenuesPage> {
                                     iconColor: AppColors.primary,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
 
-                                OutlinedButton.icon(
-                                  onPressed: () async {
-                                    try {
-                                      final paymentState =
-                                          context
-                                              .read<PaymentCubit_revenue>()
-                                              .state;
-
-                                      if (paymentState is! PaymentLoaded) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'البيانات غير جاهزة للطباعة',
-                                            ),
-                                          ),
-                                        );
-                                        return;
-                                      }
-
-                                      final payments = paymentState.payments;
-                                      final pdf = pw.Document();
-
-                                      final fontData = await rootBundle.load(
-                                        "assets/fonts/Cairo/static/Cairo-Regular.ttf",
-                                      );
-                                      final ttf = pw.Font.ttf(fontData);
-
-                                      pdf.addPage(
-                                        pw.Page(
-                                          pageFormat: PdfPageFormat.a4,
-                                          build:
-                                              (context) => pw.Directionality(
-                                                textDirection:
-                                                    pw.TextDirection.rtl,
-                                                child: pw.Column(
-                                                  crossAxisAlignment:
-                                                      pw
-                                                          .CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    pw.Center(
-                                                      child: pw.Text(
-                                                        'تقرير الإيرادات',
-                                                        style: pw.TextStyle(
-                                                          font: ttf,
-                                                          fontSize: 24,
-                                                          fontWeight:
-                                                              pw
-                                                                  .FontWeight
-                                                                  .bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    pw.SizedBox(height: 20),
-
-                                                    pw.Text(
-                                                      'التاريخ: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
-                                                      style: pw.TextStyle(
-                                                        font: ttf,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                    pw.SizedBox(height: 20),
-
-                                                    pw.Table(
-                                                      border: pw
-                                                          .TableBorder.all(
-                                                        color:
-                                                            PdfColors.grey400,
-                                                      ),
-                                                      children: [
-                                                        pw.TableRow(
-                                                          decoration:
-                                                              const pw.BoxDecoration(
-                                                                color:
-                                                                    PdfColors
-                                                                        .grey300,
-                                                              ),
-                                                          children: [
-                                                            _buildTableCell(
-                                                              'رقم العملية',
-                                                              ttf,
-                                                              isHeader: true,
-                                                            ),
-                                                            _buildTableCell(
-                                                              'المبلغ',
-                                                              ttf,
-                                                              isHeader: true,
-                                                            ),
-                                                            _buildTableCell(
-                                                              'التاريخ',
-                                                              ttf,
-                                                              isHeader: true,
-                                                            ),
-                                                            _buildTableCell(
-                                                              'طريقة الدفع',
-                                                              ttf,
-                                                              isHeader: true,
-                                                            ),
-                                                            _buildTableCell(
-                                                              'الحالة',
-                                                              ttf,
-                                                              isHeader: true,
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        ...payments.map((p) {
-                                                          final paymentWay =
-                                                              _translatePaymentWay(
-                                                                p.paymentWay,
-                                                              );
-                                                          final ps =
-                                                              (p.paymentStatus)
-                                                                  .toLowerCase();
-
-                                                          final status =
-                                                              switch (ps) {
-                                                                "paid" =>
-                                                                  "تم الدفع",
-                                                                "deposit" =>
-                                                                  "تم دفع جزء",
-                                                                "refunded" =>
-                                                                  "تم الاسترجاع",
-                                                                "cancelled" ||
-                                                                "canceled" =>
-                                                                  "تم الإلغاء",
-                                                                _ =>
-                                                                  "قيد المراجعة",
-                                                              };
-
-                                                          return pw.TableRow(
-                                                            children: [
-                                                              _buildTableCell(
-                                                                p.numOperation ??
-                                                                    p.orderId,
-                                                                ttf,
-                                                              ),
-                                                              _buildTableCell(
-                                                                p.totalPrice
-                                                                    .toStringAsFixed(
-                                                                      0,
-                                                                    ),
-                                                                ttf,
-                                                              ),
-                                                              _buildTableCell(
-                                                                p.createdAt.length >=
-                                                                        10
-                                                                    ? p.createdAt
-                                                                        .substring(
-                                                                          0,
-                                                                          10,
-                                                                        )
-                                                                    : (p.createdAt),
-                                                                ttf,
-                                                              ),
-                                                              _buildTableCell(
-                                                                paymentWay,
-                                                                ttf,
-                                                              ),
-                                                              _buildTableCell(
-                                                                status,
-                                                                ttf,
-                                                              ),
-                                                            ],
-                                                          );
-                                                        }).toList(),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                        ),
-                                      );
-
-                                      final bytes = await pdf.save();
-
-                                      if (Platform.isAndroid ||
-                                          Platform.isIOS) {
-                                        final dir =
-                                            await getApplicationDocumentsDirectory();
-                                        final file = File(
-                                          "${dir.path}/revenue_report.pdf",
-                                        );
-                                        await file.writeAsBytes(bytes);
-                                        await OpenFilex.open(file.path);
-
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'تم إنشاء وفتح التقرير بنجاح',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      } else {
-                                        await Printing.layoutPdf(
-                                          onLayout: (format) async => bytes,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      debugPrint('Print error: $e');
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'حدث خطأ أثناء إنشاء الملف: $e',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  icon: const Icon(Icons.print_outlined),
-                                  label: Text(
-                                    "طباعة التقرير",
-                                    style: TextStyle(color: AppColors.primary),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: AppColors.primary),
-                                    iconColor: AppColors.primary,
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -582,11 +420,7 @@ class _RevenuesPageState extends State<RevenuesPage> {
                                       }
 
                                       if (paymentState is PaymentError) {
-                                        return Center(
-                                          child: Text(
-                                            'حدث خطأ: ${paymentState.message}',
-                                          ),
-                                        );
+                                        return Center(child: Text("خطأ في تحميل الإيرادات",style: TextStyle(color: Colors.red,fontSize: 20),));
                                       }
 
                                       if (paymentState is PaymentLoaded) {
@@ -952,24 +786,5 @@ class _RevenuesPageState extends State<RevenuesPage> {
     if (lower.contains('متأخر') || lower.contains('الغاء'))
       return const Color(0xFFE53935);
     return Colors.black;
-  }
-
-  pw.Widget _buildTableCell(
-    String text,
-    pw.Font font, {
-    bool isHeader = false,
-  }) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(
-          font: font,
-          fontSize: isHeader ? 12 : 10,
-          fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
-        ),
-        textAlign: pw.TextAlign.center,
-      ),
-    );
   }
 }

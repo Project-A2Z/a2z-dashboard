@@ -12,7 +12,7 @@ class AddPaymentCubit extends Cubit<AddPaymentState> {
   Future<void> createPayment({
     required String paymentStatus,
     required String paymentWay,
-    required String paymentWith,
+    String? paymentWith,
     required double totalPrice,
     required String type,
   }) async {
@@ -22,7 +22,7 @@ class AddPaymentCubit extends Cubit<AddPaymentState> {
       final response = await apiService.createPayment(
         paymentStatus: paymentStatus,
         paymentWay: paymentWay,
-        paymentWith: paymentWith,
+        paymentWith: paymentWith!,
         totalPrice: totalPrice,
         type: type,
       );

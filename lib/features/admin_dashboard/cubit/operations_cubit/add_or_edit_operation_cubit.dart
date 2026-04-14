@@ -17,6 +17,9 @@ class AddOrEditEmployeeCubit extends Cubit<AddOrEditEmployeeState> {
     required String department,
     required String dateOfSubmission,
     required String salary,
+    required String? password,
+    String? adminPassword,
+    
   }) async {
     emit(AddOrEditEmployeeLoading());
     try {
@@ -28,6 +31,8 @@ class AddOrEditEmployeeCubit extends Cubit<AddOrEditEmployeeState> {
         department: department,
         dateOfSubmission: dateOfSubmission,
         salary: salary,
+        password: password ?? '',
+        adminPassword: adminPassword ?? '',
       );
 
       if (response.statusCode == 200) {

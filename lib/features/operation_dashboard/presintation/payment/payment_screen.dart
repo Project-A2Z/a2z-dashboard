@@ -70,7 +70,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: DashboardHeader(
-                        title: "التعاملات المالة",
+                        title: "التعاملات المالية",
                         onRefreshTap: () {
                           context.read<PaymentCubit>().fetchPayments();
                         },

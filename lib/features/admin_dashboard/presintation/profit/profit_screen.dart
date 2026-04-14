@@ -24,7 +24,7 @@ class ProfitsScreen extends StatelessWidget {
                 if (state is ProfitLoading) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primary,));
                 } else if (state is ProfitError) {
-                  return Center(child: Text(state.message));
+                  return Center(child: Text("خطأ في تحميل الارباح",style: TextStyle(color: Colors.red,fontSize: 20),));
                 } else if (state is ProfitLoaded) {
                   final data = state.profitData;
 
@@ -63,7 +63,9 @@ class ProfitsScreen extends StatelessWidget {
                         children: [
                           Directionality(
                             textDirection: TextDirection.ltr,
-                            child: DashboardHeader_admin(title: "الأرباح"),
+                            child: DashboardHeader_admin(title: "الأرباح",onRefreshTap: (){
+                              context.read<ProfitCubit>().fetchProfits();
+                            },),
                           ),
                           Container(
                             padding: EdgeInsets.all(20),

@@ -184,18 +184,27 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getProductAdminDetailsById(String id) async {
-    final v2Url = _dio.options.baseUrl.replaceAll('/v1', '/v2');
-    final res = await _dio.get(
-      '$v2Url/products/$id/admin',
-      queryParameters: {'lang': 'ar'},
-    );
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      if (res.data != null && res.data['status'] == 'success') {
-         return Map<String, dynamic>.from(res.data);
+    try {
+      final v2Url = _dio.options.baseUrl.replaceAll('/v1', '/v2');
+      final res = await _dio.get(
+        '$v2Url/products/$id/admin',
+        queryParameters: {'lang': 'ar'},
+        options: Options(headers: {'Accept-Language': 'ar'}),
+      );
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        if (res.data != null && res.data['status'] == 'success') {
+          return Map<String, dynamic>.from(res.data);
+        }
+        throw Exception('Failed to fetch admin details');
+      } else {
+        throw Exception('Admin details fetch failed: ${res.statusCode}');
       }
-      throw Exception('Failed to fetch admin details');
-    } else {
-      throw Exception('Admin details fetch failed: ${res.statusCode}');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        print('Warning: Product not found: 404 for ID $id (Continuing with cached data)');
+        return <String, dynamic>{};
+      }
+      rethrow;
     }
   }
 

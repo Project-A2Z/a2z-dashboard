@@ -101,7 +101,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   children: [
                     Directionality(
                       textDirection: TextDirection.ltr,
-                      child: DashboardHeader_admin(title: "الموظفين"),
+                      child: DashboardHeader_admin(title: "الموظفين",onRefreshTap: (){
+                        context.read<OperationsCubit>().fetchOperations();
+                      },),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -156,9 +158,7 @@ class _OperationsScreenState extends State<OperationsScreen> {
                             );
                           }
                           if (state is OperationsError) {
-                            return Center(
-                              child: Text('حدث خطأ: ${state.message}'),
-                            );
+                            return Center(child: Text("خطأ في تحميل الموظفين",style: TextStyle(color: Colors.red,fontSize: 20),));
                           }
                           if (state is OperationsLoaded) {
                             var operations = state.operations.operations;

@@ -30,7 +30,7 @@ class CustomersScreen extends StatelessWidget {
                 if (state is CustomersLoading) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primary,));
                 } else if (state is CustomersError) {
-                  return Center(child: Text("خطأ في تحميل العملاء"));
+                  return Center(child: Text("خطأ في تحميل العملاء",style: TextStyle(color: Colors.red,fontSize: 20),));
                 } else if (state is CustomersLoaded) {
                   final data = state.customersData;
 
@@ -62,7 +62,9 @@ class CustomersScreen extends StatelessWidget {
                           Directionality(
                                   textDirection: TextDirection.ltr,
                                   child:
-                                      DashboardHeader_admin(title: "العملاء"),
+                                      DashboardHeader_admin(title: "العملاء",onRefreshTap: (){
+                                        context.read<CustomersCubit>().fetchCustomers();
+                                      },),
                                 ),
                           Container(
                             padding: EdgeInsets.all(20),

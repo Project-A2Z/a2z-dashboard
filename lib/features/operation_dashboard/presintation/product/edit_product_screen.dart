@@ -123,9 +123,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           const SnackBar(content: Text('تم تعديل المنتج بنجاح')),
                         );
                         Navigator.pushReplacementNamed(context, '/products');
-                      } else if (state is UpdateProductFailure) {
+                      } else if (state is UpdateProductError) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(' خطأ في التعديل')),
+                          SnackBar(content: Text(' خطأ في التعديل: ${state.message}')),
                         );
                       }
                     },
@@ -332,19 +332,24 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      final allImages = [
-        ...existingImages,
-        ...pickedImages.map((e) => ''),
-      ];
+      final deleteImages = widget.product.imageList
+          .where((element) => !existingImages.contains(element))
+          .toList();
 
       context.read<UpdateProductCubit>().updateProduct(
             id: widget.product.id,
             name: nameCtrl.text,
             price: priceCtrl.text,
+            purchasePrice: '0', 
             description: descCtrl.text,
             category: catCtrl.text,
             stockQty: int.tryParse(qtyCtrl.text) ?? widget.product.stockQty,
-            imageList: allImages,
+            newImages: pickedImages,
+            isKG: false,
+            isTON: false,
+            isLITER: false,
+            isCUBIC_METER: false,
+            deleteImages: deleteImages,
           );
     }
   }
